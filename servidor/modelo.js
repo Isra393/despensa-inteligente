@@ -1,4 +1,5 @@
 const { randomUUID } = require("node:crypto");
+const bcrypt = require("bcrypt");
 
 class ErrorNegocio extends Error {
   constructor(mensaje, estadoHTTP) {
@@ -10,6 +11,86 @@ class ErrorNegocio extends Error {
 class Sistema {
   constructor(cad) {
     this.cad = cad;
+  }
+    usuarioPublico(usuario) {
+    return {
+      id: usuario.id,
+      email: usuario.email,
+      rol: usuario.rol,
+      estado: usuario.estado
+    };
+  }
+
+  validarPassword(password) {
+    if (
+      typeof password !== "string" ||
+      password.length < 8 ||
+      Buffer.byteLength(password, "utf8") > 72
+    ) {
+      throw new ErrorNegocio(
+        "La contraseña debe tener al menos 8 caracteres y no superar 72 bytes",
+        400
+      );
+    }
+  }
+
+  async registrarUsuario(email, password) {
+    const normalizado = this.normalizarEmail(email);
+    this.validarPassword(password);
+
+    const existente = await this.cad.buscarPorEmail(normalizado);
+
+    if (existente) {
+      throw new ErrorNegocio("El email ya está registrado", 409);
+    }
+
+    const usuario = {
+      id: randomUUID(),
+      email: normalizado,
+      passwordHash: await bcrypt.hash(password, 12),
+      rol: "usuario",
+      estado: "pendiente"
+    };
+
+    await this.cad.guardar(usuario);
+
+    return this.usuarioPublico(usuario);
+  }
+
+  async loginUsuario(email, password) {
+    const normalizado = this.normalizarEmail(email);
+
+    if (
+      typeof password !== "string" ||
+      Buffer.byteLength(password, "utf8") > 72
+    ) {
+      throw new ErrorNegocio("Email o contraseña incorrectos", 401);
+    }
+
+    const usuario = await this.cad.buscarPorEmail(normalizado);
+
+    if (
+      !usuario ||
+      usuario.estado === "eliminado" ||
+      !usuario.passwordHash
+    ) {
+      throw new ErrorNegocio("Email o contraseña incorrectos", 401);
+    }
+
+    const correcta = await bcrypt.compare(
+      password,
+      usuario.passwordHash
+    );
+
+    if (!correcta) {
+      throw new ErrorNegocio("Email o contraseña incorrectos", 401);
+    }
+
+    if (usuario.estado !== "activo") {
+      throw new ErrorNegocio("Debes confirmar tu cuenta para iniciar sesión", 403);
+    }
+
+    return this.usuarioPublico(usuario);
   }
 
   normalizarEmail(email) {
@@ -44,8 +125,10 @@ class Sistema {
     return this.cad.guardar(usuario);
   }
 
-  async listarUsuarios() {
-    return this.cad.listar();
+    async listarUsuarios() {
+    const usuarios = await this.cad.listar();
+
+    return usuarios.map(usuario => this.usuarioPublico(usuario));
   }
 
   async usuarioActivo(email) {
@@ -67,6 +150,16 @@ class Sistema {
     await this.cad.guardar(usuario);
 
     return { mensaje: "Usuario eliminado" };
+  }
+    async obtenerUsuarioSesion(email) {
+    const normalizado = this.normalizarEmail(email);
+    const usuario = await this.cad.buscarPorEmail(normalizado);
+
+    if (!usuario || usuario.estado !== "activo") {
+      throw new ErrorNegocio("La sesión no es válida", 401);
+    }
+
+    return this.usuarioPublico(usuario);
   }
 }
 

@@ -1,7 +1,15 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const request = require("supertest");
-const { crearApp } = require("../servidor/app");
+const { randomBytes } = require("node:crypto");
+const { crearApp: crearAppBase } = require("../servidor/app");
+
+function crearApp() {
+  return crearAppBase(undefined, {
+    secret: randomBytes(32).toString("hex"),
+    produccion: false
+  });
+}
 
 test("La API de salud responde correctamente", async () => {
   const respuesta = await request(crearApp())

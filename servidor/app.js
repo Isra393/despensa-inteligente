@@ -3,9 +3,21 @@ const path = require("node:path");
 const { crearApi } = require("./api");
 const { Sistema, ErrorNegocio } = require("./modelo");
 const { CadMemoria } = require("./cadMemoria");
+const { crearSesion } = require("./sesion");
 
-function crearApp(sistema = new Sistema(new CadMemoria())) {
+function crearApp(
+  sistema = new Sistema(new CadMemoria()),
+  {
+    secret = process.env.SESSION_SECRET,
+    produccion = process.env.NODE_ENV === "production",
+    store
+  } = {}
+) {
   const app = express();
+
+  if (produccion) {
+    app.set("trust proxy", 1);
+  }
 
   app.use(express.json({ limit: "16kb" }));
 
@@ -18,7 +30,14 @@ function crearApp(sistema = new Sistema(new CadMemoria())) {
     });
   });
 
-  app.use("/api", crearApi(sistema));
+  app.use(crearSesion({ secret, produccion, store }));
+
+  app.use("/api", (req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    next();
+  });
+
+  app.use("/api", crearApi(sistema, { produccion }));
 
   app.use("/api", (req, res) => {
     res.status(404).json({ error: "Ruta no encontrada" });
@@ -36,7 +55,9 @@ function crearApp(sistema = new Sistema(new CadMemoria())) {
     }
 
     if (error.type === "entity.too.large") {
-      return res.status(413).json({ error: "La petición es demasiado grande" });
+      return res.status(413).json({
+        error: "La petición es demasiado grande"
+      });
     }
 
     console.error("Error interno:", error.message);

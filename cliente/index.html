@@ -4,12 +4,81 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Despensa Inteligente</title>
+  <link rel="stylesheet" href="/estilos.css">
+  <script src="/clienteRest.js" defer></script>
+  <script src="/controlWeb.js" defer></script>
 </head>
 <body>
   <main>
-    <h1>Despensa Inteligente</h1>
-    <p>Organiza tus alimentos y mantén tu despensa bajo control.</p>
-    <p>Estamos preparando tu despensa.</p>
+    <header>
+      <h1>Despensa Inteligente</h1>
+      <p>Organiza tus alimentos y mantén tu despensa bajo control.</p>
+    </header>
+
+    <p id="mensaje" role="status" aria-live="polite"></p>
+
+    <section id="acceso">
+      <div class="tarjeta">
+        <h2>Iniciar sesión</h2>
+
+        <form id="form-login">
+          <label for="login-email">Email</label>
+          <input
+            id="login-email"
+            type="email"
+            autocomplete="username"
+            required
+          >
+
+          <label for="login-password">Contraseña</label>
+          <input
+            id="login-password"
+            type="password"
+            autocomplete="current-password"
+            required
+          >
+
+          <button type="submit">Entrar</button>
+        </form>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Crear cuenta</h2>
+
+        <form id="form-registro">
+          <label for="registro-email">Email</label>
+          <input
+            id="registro-email"
+            type="email"
+            autocomplete="username"
+            required
+          >
+
+          <label for="registro-password">Contraseña</label>
+          <input
+            id="registro-password"
+            type="password"
+            autocomplete="new-password"
+            minlength="8"
+            required
+          >
+
+          <p class="ayuda">Utiliza al menos 8 caracteres.</p>
+
+          <button type="submit">Crear cuenta</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="panel" class="tarjeta" hidden>
+      <h2>Mi despensa</h2>
+      <p id="usuario"></p>
+      <p>
+        Tu cuenta está preparada. La gestión de alimentos
+        se incorporará en una próxima ampliación.
+      </p>
+      <button id="btn-salir" type="button">Cerrar sesión</button>
+    </section>
   </main>
 </body>
 </html>
