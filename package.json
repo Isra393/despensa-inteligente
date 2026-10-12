@@ -1,0 +1,29 @@
+{
+  "name": "despensa-inteligente",
+  "version": "1.0.0",
+  "description": "Repositorio para crear una aplicacion de despensa inteligente para la asignatura Procesos de Ingenieria Software de Israel Amador",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test",
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Isra393/despensa-inteligente.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Isra393/despensa-inteligente/issues"
+  },
+  "homepage": "https://github.com/Isra393/despensa-inteligente#readme",
+  "dependencies": {
+    "express": "^5.3.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.3.1"
+  }
+}
