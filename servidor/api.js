@@ -75,51 +75,39 @@ function crearApi(sistema, { produccion = false } = {}) {
     res.json({ usuario: req.usuario });
   });
 
-  function soloAdmin(req, res, next) {
-    if (req.usuario.rol !== "administrador") {
-      return res.status(403).json({
-        error: "Se requieren permisos de administrador"
-      });
-    }
-
-    next();
-  }
-
-  router.get("/usuarios", soloAdmin, async (req, res, next) => {
+    router.get("/usuarios", async (req, res, next) => {
     try {
-      res.json(await sistema.listarUsuarios());
+      const usuarios = await sistema.listarUsuariosAutorizado(
+        req.session.email
+      );
+
+      res.json(usuarios);
     } catch (error) {
       next(error);
     }
   });
 
-  router.get(
-    "/usuarios/:email/activo",
-    soloAdmin,
-    async (req, res, next) => {
-      try {
-        const activo = await sistema.usuarioActivo(req.params.email);
-        res.json({ activo });
-      } catch (error) {
-        next(error);
-      }
+   router.get("/usuarios/:email/activo", async (req, res, next) => {
+    try {
+      const activo = await sistema.usuarioActivoAutorizado(
+        req.session.email,
+        req.params.email
+      );
+
+      res.json({ activo });
+    } catch (error) {
+      next(error);
     }
-  );
+  });
 
   router.delete("/usuarios/:email", async (req, res, next) => {
     try {
       const email = sistema.normalizarEmail(req.params.email);
 
-      if (
-        req.usuario.rol !== "administrador" &&
-        req.usuario.email !== email
-      ) {
-        return res.status(403).json({
-          error: "Solo puedes eliminar tu propia cuenta"
-        });
-      }
-
-      const resultado = await sistema.eliminarUsuario(email);
+            const resultado = await sistema.eliminarUsuarioAutorizado(
+        req.session.email,
+        email
+      );
 
       if (req.usuario.email === email) {
         return req.session.destroy(error => {

@@ -161,6 +161,56 @@ class Sistema {
 
     return this.usuarioPublico(usuario);
   }
+    async exigirAdministrador(emailSolicitante) {
+    const usuario = await this.obtenerUsuarioSesion(
+      emailSolicitante
+    );
+
+    if (usuario.rol !== "administrador") {
+      throw new ErrorNegocio(
+        "Se requieren permisos de administrador",
+        403
+      );
+    }
+
+    return usuario;
+  }
+
+  async listarUsuariosAutorizado(emailSolicitante) {
+    await this.exigirAdministrador(emailSolicitante);
+    return this.listarUsuarios();
+  }
+
+  async usuarioActivoAutorizado(
+    emailSolicitante,
+    emailConsultado
+  ) {
+    await this.exigirAdministrador(emailSolicitante);
+    return this.usuarioActivo(emailConsultado);
+  }
+
+  async eliminarUsuarioAutorizado(
+    emailSolicitante,
+    emailObjetivo
+  ) {
+    const solicitante = await this.obtenerUsuarioSesion(
+      emailSolicitante
+    );
+
+    const objetivo = this.normalizarEmail(emailObjetivo);
+
+    if (
+      solicitante.rol !== "administrador" &&
+      solicitante.email !== objetivo
+    ) {
+      throw new ErrorNegocio(
+        "Solo puedes eliminar tu propia cuenta",
+        403
+      );
+    }
+
+    return this.eliminarUsuario(objetivo);
+  }
 }
 
 module.exports = { Sistema, ErrorNegocio };

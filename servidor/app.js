@@ -4,6 +4,7 @@ const { crearApi } = require("./api");
 const { Sistema, ErrorNegocio } = require("./modelo");
 const { CadMemoria } = require("./cadMemoria");
 const { crearSesion } = require("./sesion");
+const { registroActividad } = require("./registroActividad");
 
 function crearApp(
   sistema = new Sistema(new CadMemoria()),
@@ -14,10 +15,12 @@ function crearApp(
   } = {}
 ) {
   const app = express();
+    
 
   if (produccion) {
     app.set("trust proxy", 1);
   }
+  app.use("/api", registroActividad);
 
   app.use(express.json({ limit: "16kb" }));
 
