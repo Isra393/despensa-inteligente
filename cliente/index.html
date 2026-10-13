@@ -77,8 +77,39 @@
         Tu cuenta está preparada. La gestión de alimentos
         se incorporará en una próxima ampliación.
       </p>
+      <button id="btn-admin" type="button" hidden>
+        Ver usuarios registrados
+      </button>
       <button id="btn-salir" type="button">Cerrar sesión</button>
     </section>
+    <section id="panel-admin" class="tarjeta" hidden
+         aria-labelledby="titulo-admin">
+  <div class="cabecera-admin">
+    <div>
+      <h2 id="titulo-admin">Usuarios registrados</h2>
+      <p>Consulta las cuentas, sus roles y sus estados.</p>
+    </div>
+    <button id="btn-actualizar-usuarios" type="button">
+      Actualizar lista
+    </button>
+  </div>
+
+  <p id="estado-usuarios" role="status" aria-live="polite"></p>
+
+  <div class="tabla-contenedor">
+    <table id="tabla-usuarios" hidden>
+      <caption>Listado de cuentas de la aplicación</caption>
+      <thead>
+        <tr>
+          <th scope="col">Email</th>
+          <th scope="col">Rol</th>
+          <th scope="col">Estado</th>
+        </tr>
+      </thead>
+      <tbody id="filas-usuarios"></tbody>
+    </table>
+  </div>
+</section>
   </main>
 </body>
 </html>

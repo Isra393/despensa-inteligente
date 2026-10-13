@@ -41,4 +41,7 @@ class ClienteRest {
   logout() {
     return this.solicitar("/logout", "POST");
   }
+    listarUsuarios() {
+    return this.solicitar("/usuarios");
+  }
 }

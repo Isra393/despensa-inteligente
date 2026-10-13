@@ -93,3 +93,70 @@ button:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+#panel-admin {
+  margin-top: 24px;
+}
+
+.cabecera-admin {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.cabecera-admin h2 {
+  margin-top: 0;
+}
+
+.cabecera-admin p {
+  color: #526458;
+}
+
+#btn-admin {
+  margin-right: 12px;
+  margin-bottom: 12px;
+}
+
+.tabla-contenedor {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+caption {
+  text-align: left;
+  padding-bottom: 12px;
+  font-weight: 600;
+}
+
+th,
+td {
+  padding: 14px;
+  border-bottom: 1px solid #dce5d8;
+  overflow-wrap: anywhere;
+}
+
+th {
+  background: #edf4ee;
+  color: #27633e;
+}
+
+tbody tr:hover {
+  background: #f6f9f5;
+}
+
+@media (max-width: 650px) {
+  .cabecera-admin {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  th,
+  td {
+    padding: 10px;
+  }
+}
