@@ -257,3 +257,7 @@ La entrada temporal permite conexiones desde cualquier dirección IPv4,
 aunque siguen siendo necesarias las credenciales de MongoDB.
 Al caducar, Cloud Run perderá el acceso a Atlas. Antes de esa fecha
 debe revisarse la configuración de red necesaria para mantener el servicio.
+- Panel gráfico exclusivo para administradores con listado de usuarios,
+  email, rol y estado.
+- Actualización de la lista y mensajes de carga, lista vacía y errores.
+- Limpieza del panel al cerrar sesión.
