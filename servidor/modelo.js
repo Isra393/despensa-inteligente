@@ -212,5 +212,53 @@ class Sistema {
     return this.eliminarUsuario(objetivo);
   }
 }
+function calcularBloqueo(fallos, ahora) {
+  function convertirFecha(valor) {
+    if (typeof valor !== "string" || valor.trim() === "") {
+      throw new ErrorNegocio("Fecha no válida", 400);
+    }
 
-module.exports = { Sistema, ErrorNegocio };
+    const instante = Date.parse(valor);
+
+    if (!Number.isFinite(instante)) {
+      throw new ErrorNegocio("Fecha no válida", 400);
+    }
+
+    return instante;
+  }
+
+  if (!Array.isArray(fallos) || typeof ahora !== "string") {
+    throw new ErrorNegocio("Debes enviar fallos y ahora válidos", 400);
+  }
+
+  const instanteActual = convertirFecha(ahora);
+
+  // Valida todas las fechas y ordena sin modificar el array original.
+  const recientes = fallos
+    .map(convertirFecha)
+    .sort((a, b) => b - a)
+    .slice(0, 5);
+
+  const sinBloqueo = { bloqueado: false, hasta: null };
+
+  if (recientes.length < 5) return sinBloqueo;
+
+  const quinceMinutos = 15 * 60 * 1000;
+  const ultimoFallo = recientes[0];
+  const primeroDeLosCinco = recientes[4];
+
+  if (ultimoFallo - primeroDeLosCinco > quinceMinutos) {
+    return sinBloqueo;
+  }
+
+  const finBloqueo = ultimoFallo + quinceMinutos;
+
+  if (instanteActual >= finBloqueo) return sinBloqueo;
+
+  return {
+    bloqueado: true,
+    hasta: new Date(finBloqueo).toISOString()
+  };
+}
+
+module.exports = { Sistema, ErrorNegocio, calcularBloqueo };
