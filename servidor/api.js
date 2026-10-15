@@ -1,8 +1,21 @@
 const express = require("express");
 const { NOMBRE_COOKIE, opcionesCookie } = require("./sesion");
+const { calcularBloqueo } = require("./modelo");
 
 function crearApi(sistema, { produccion = false } = {}) {
   const router = express.Router();
+    router.post("/prueba/bloqueo", (req, res, next) => {
+    try {
+      const resultado = calcularBloqueo(
+        req.body?.fallos,
+        req.body?.ahora
+      );
+
+      res.status(200).json(resultado);
+    } catch (error) {
+      next(error);
+    }
+  });
 
   router.post("/registro", async (req, res, next) => {
     try {
