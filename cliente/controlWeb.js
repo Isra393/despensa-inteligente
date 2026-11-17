@@ -26,6 +26,7 @@ function sesionCaducada() {
 }
 
 const despensa = new Despensa(rest, { mostrarMensaje, sesionCaducada });
+const avisos = new Avisos(rest, { mostrarMensaje, sesionCaducada });
 
 const oneTap = new GoogleOneTap(rest, {
   mostrarMensaje,
@@ -66,6 +67,7 @@ function mostrarUsuario(datos) {
   botonAdmin.hidden = datos.rol !== "administrador";
   oneTap.ocultar();
   despensa.mostrar();
+  avisos.mostrar();
 }
 
 function mostrarAcceso() {
@@ -76,6 +78,7 @@ function mostrarAcceso() {
   botonAdmin.hidden = true;
   usuario.textContent = "";
   despensa.limpiar();
+  avisos.limpiar();
 }
 
 function crearCelda(texto) {

@@ -55,6 +55,15 @@ class ClienteRest {
     );
   }
 
+  // Preferencias de los avisos de caducidad
+  obtenerAvisos() {
+    return this.solicitar("/preferencias/avisos");
+  }
+
+  guardarAvisos(preferencias) {
+    return this.solicitar("/preferencias/avisos", "PUT", preferencias);
+  }
+
   // Alimentos de la despensa
   listarAlimentos() {
     return this.solicitar("/alimentos");

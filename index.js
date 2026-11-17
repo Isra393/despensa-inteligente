@@ -55,7 +55,8 @@ async function arrancar() {
       produccion: process.env.NODE_ENV === "production",
       store,
       correo,
-      google
+      google,
+      tokenTareas: process.env.TAREAS_TOKEN
     });
 
     const puerto = process.env.PORT || 3000;

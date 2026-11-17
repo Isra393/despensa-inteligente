@@ -215,6 +215,28 @@ function crearApi(
   // Alimentos de la despensa del usuario que ha iniciado sesión.
   // ---------------------------------------------------------------
 
+  // Preferencias de los avisos de caducidad por correo.
+  router.get("/preferencias/avisos", async (req, res, next) => {
+    try {
+      res.json(await sistema.obtenerPreferenciasAvisos(req.session.email));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.put("/preferencias/avisos", async (req, res, next) => {
+    try {
+      res.json(
+        await sistema.actualizarPreferenciasAvisos(
+          req.session.email,
+          req.body
+        )
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.get("/alimentos", async (req, res, next) => {
     try {
       res.json(await sistema.listarAlimentos(req.session.email));

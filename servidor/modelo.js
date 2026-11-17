@@ -6,6 +6,7 @@ const {
 } = require("./confirmacion");
 const {
   MAX_ALIMENTOS_POR_USUARIO,
+  fechaLocal,
   estadoCaducidad,
   validarDatosAlimento,
   compararAlimentos
@@ -17,6 +18,8 @@ class ErrorNegocio extends Error {
     this.estadoHTTP = estadoHTTP;
   }
 }
+
+const DIAS_AVISO_POR_DEFECTO = 3;
 
 class Sistema {
   constructor(cad) {
@@ -477,6 +480,111 @@ class Sistema {
     }
 
     return { mensaje: "Alimento eliminado" };
+  }
+
+  // ---------------------------------------------------------------
+  // Avisos de caducidad por correo (Sprint 3)
+  // ---------------------------------------------------------------
+
+  preferenciasAvisos(usuario) {
+    const avisos = usuario.avisosCaducidad || {};
+
+    return {
+      activo: avisos.activo === true,
+      diasAntelacion: Number.isInteger(avisos.diasAntelacion)
+        ? avisos.diasAntelacion
+        : DIAS_AVISO_POR_DEFECTO
+    };
+  }
+
+  async obtenerUsuarioActivo(email) {
+    const normalizado = this.normalizarEmail(email);
+    const usuario = await this.cad.buscarPorEmail(normalizado);
+
+    if (!usuario || usuario.estado !== "activo") {
+      throw new ErrorNegocio("La sesión no es válida", 401);
+    }
+
+    return usuario;
+  }
+
+  async obtenerPreferenciasAvisos(emailSolicitante) {
+    const usuario = await this.obtenerUsuarioActivo(emailSolicitante);
+    return this.preferenciasAvisos(usuario);
+  }
+
+  async actualizarPreferenciasAvisos(emailSolicitante, datos) {
+    if (!datos || typeof datos !== "object" || Array.isArray(datos)) {
+      throw new ErrorNegocio("Las preferencias no son válidas", 400);
+    }
+
+    const { activo, diasAntelacion } = datos;
+
+    if (typeof activo !== "boolean") {
+      throw new ErrorNegocio("Indica si quieres recibir avisos", 400);
+    }
+
+    if (
+      !Number.isInteger(diasAntelacion) ||
+      diasAntelacion < 1 ||
+      diasAntelacion > 7
+    ) {
+      throw new ErrorNegocio(
+        "La antelación debe estar entre 1 y 7 días",
+        400
+      );
+    }
+
+    const usuario = await this.obtenerUsuarioActivo(emailSolicitante);
+
+    usuario.avisosCaducidad = { activo, diasAntelacion };
+    await this.cad.guardar(usuario);
+
+    return this.preferenciasAvisos(usuario);
+  }
+
+  // Devuelve los avisos pendientes de enviar hoy. Solo incluye usuarios
+  // activos que los han pedido, que tienen algún alimento caducado o a
+  // punto de caducar y que no han recibido ya el aviso de hoy.
+  async prepararAvisosCaducidad(ahora = new Date()) {
+    const hoy = fechaLocal(ahora);
+    const usuarios = await this.cad.listar();
+    const avisos = [];
+
+    for (const usuario of usuarios) {
+      const preferencias = this.preferenciasAvisos(usuario);
+
+      if (
+        usuario.estado !== "activo" ||
+        !preferencias.activo ||
+        usuario.avisoCaducidadEnviadoEl === hoy
+      ) {
+        continue;
+      }
+
+      const alimentos = (await this.cad.listarAlimentos(usuario.id))
+        .sort(compararAlimentos)
+        .map(alimento => this.alimentoPublico(alimento, ahora))
+        .filter(alimento =>
+          alimento.diasRestantes !== null &&
+          alimento.diasRestantes <= preferencias.diasAntelacion
+        );
+
+      if (alimentos.length > 0) {
+        avisos.push({ email: usuario.email, alimentos });
+      }
+    }
+
+    return avisos;
+  }
+
+  async registrarAvisoEnviado(email, ahora = new Date()) {
+    const usuario = await this.cad.buscarPorEmail(email);
+
+    if (!usuario) return;
+
+    usuario.avisoCaducidadEnviadoEl = fechaLocal(ahora);
+    await this.cad.guardar(usuario);
   }
 }
 function calcularBloqueo(fallos, ahora) {

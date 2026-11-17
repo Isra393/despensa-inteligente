@@ -148,6 +148,7 @@ En otros terminales puede utilizarse `npm` en lugar de `npm.cmd`.
 | `SMTP_PASSWORD` | Contraseña de aplicación de la cuenta Gmail. |
 | `GOOGLE_CLIENT_ID` | Identificador del cliente OAuth de Google. |
 | `GOOGLE_CLIENT_SECRET` | Secreto del cliente OAuth de Google. |
+| `TAREAS_TOKEN` | Opcional. Token secreto (32 caracteres o más) de las tareas programadas, como los avisos de caducidad. |
 | `MONGODB_URI_TEST` | Opcional. Cadena de conexión para las pruebas de integración. |
 | `MONGODB_DB_TEST` | Opcional. Base de las pruebas de integración (por defecto `despensa_inteligente_test`). |
 
@@ -295,6 +296,29 @@ Nueva identidad visual para dar un aspecto más profesional:
 - Contrastes de texto AA, foco visible y enlace para saltar
   al contenido.
 
+### Sprint 3: avisos de caducidad por correo
+
+- Cada usuario decide en su panel si quiere avisos y con cuántos
+  días de antelación (1 a 7; por defecto, desactivados y 3 días).
+- El aviso incluye los alimentos caducados y los que caducan dentro
+  de esa antelación. Los alimentos sin fecha no se incluyen.
+- Si no hay nada que avisar, no se envía correo.
+- Cada usuario recibe como máximo un aviso al día, según la fecha
+  de España. Si el envío falla, sigue pendiente para el siguiente intento.
+- Las cuentas pendientes o eliminadas nunca reciben avisos.
+- El correo tiene versión de texto y versión HTML con el estilo
+  de la aplicación.
+
+El envío lo inicia un planificador externo, porque Cloud Run
+detiene las instancias sin tráfico. Hay dos formas:
+
+1. Ruta HTTP protegida: `POST /api/tareas/avisos-caducidad` con la
+   cabecera `Authorization: Bearer <TAREAS_TOKEN>`.
+2. Script: `npm run avisos`, que se conecta a MongoDB, envía los avisos
+   y termina (sirve para pruebas locales o para un Cloud Run Job).
+
+Sin `TAREAS_TOKEN` (o con menos de 32 caracteres), la ruta devuelve 503.
+
 ## Persistencia
 
 Los usuarios, los alimentos y las sesiones se almacenan en las
@@ -330,6 +354,9 @@ Cambiar `SESSION_SECRET` invalida las cookies firmadas con la clave anterior.
 | GET | `/api/usuarios` | Administrador |
 | GET | `/api/usuarios/:email/activo` | Administrador |
 | DELETE | `/api/usuarios/:email` | Administrador o propietario de la cuenta |
+| GET | `/api/preferencias/avisos` | Usuario autenticado |
+| PUT | `/api/preferencias/avisos` | Usuario autenticado |
+| POST | `/api/tareas/avisos-caducidad` | Planificador con `TAREAS_TOKEN` |
 | GET | `/api/alimentos` | Usuario autenticado; solo sus alimentos |
 | POST | `/api/alimentos` | Usuario autenticado |
 | PUT | `/api/alimentos/:id` | Propietario del alimento |
@@ -444,6 +471,20 @@ Categorías: `fruta y verdura`, `carne y pescado`, `lácteos y huevos`,
 ```
 
 Un alimento inexistente o de otro usuario devuelve 404.
+
+### Avisos de caducidad
+
+`PUT /api/preferencias/avisos` recibe:
+
+```json
+{ "activo": true, "diasAntelacion": 3 }
+```
+
+`POST /api/tareas/avisos-caducidad` devuelve un recuento:
+
+```json
+{ "pendientes": 2, "enviados": 2, "fallidos": 0 }
+```
 
 ### Cálculo de bloqueo
 
@@ -617,8 +658,29 @@ Las credenciales privadas se referencian desde Secret Manager:
 | `MONGODB_URI` | `mongodb-uri` |
 | `SMTP_PASSWORD` | `smtp-password` |
 | `GOOGLE_CLIENT_SECRET` | `google-client-secret` |
+| `TAREAS_TOKEN` | `tareas-token` |
 
 Cloud Run debe referenciar la versión correspondiente de cada secreto.
+
+### Programación de los avisos de caducidad
+
+Crear el secreto y un trabajo de Cloud Scheduler que llame cada día
+a las 8:00 (hora de España) a la ruta de avisos:
+
+```powershell
+# Generar el token y guardarlo en Secret Manager
+$token = -join ((1..48) | ForEach-Object { '{0:x}' -f (Get-Random -Max 16) })
+$token | gcloud secrets create tareas-token --data-file=-
+
+# Tras añadir TAREAS_TOKEN al servicio de Cloud Run:
+gcloud scheduler jobs create http avisos-caducidad `
+  --location=europe-west1 `
+  --schedule="0 8 * * *" `
+  --time-zone="Europe/Madrid" `
+  --http-method=POST `
+  --uri="https://despensa-inteligente-599179699590.europe-west1.run.app/api/tareas/avisos-caducidad" `
+  --headers="Authorization=Bearer $token"
+```
 
 Su cuenta de servicio necesita el rol
 **Secret Manager Secret Accessor** sobre esos secretos.

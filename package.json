@@ -7,7 +7,8 @@
     "test": "node --test",
     "test:integracion": "node --test \"test/integracion/*.test.js\"",
     "start": "node index.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "avisos": "node servidor/ejecutarAvisos.js"
   },
   "repository": {
     "type": "git",

@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="/estilos.css">
   <script src="/clienteRest.js" defer></script>
   <script src="/despensa.js" defer></script>
+  <script src="/avisos.js" defer></script>
   <script src="/googleOneTap.js" defer></script>
   <script src="/controlWeb.js" defer></script>
 </head>
@@ -245,6 +246,32 @@
               </button>
             </div>
           </form>
+
+          <section id="avisos" class="tarjeta tarjeta-lateral" aria-labelledby="titulo-avisos">
+            <h3 id="titulo-avisos">Avisos por correo</h3>
+            <p class="ayuda">Te escribimos por la mañana si algo está caducado o a punto de caducar.</p>
+
+            <form id="form-avisos">
+              <label class="casilla" for="avisos-activo">
+                <input id="avisos-activo" type="checkbox">
+                Recibir avisos de caducidad
+              </label>
+
+              <div class="campo">
+                <label for="avisos-dias">Avisarme con</label>
+                <select id="avisos-dias">
+                  <option value="1">1 día de antelación</option>
+                  <option value="2">2 días de antelación</option>
+                  <option value="3" selected>3 días de antelación</option>
+                  <option value="5">5 días de antelación</option>
+                  <option value="7">7 días de antelación</option>
+                </select>
+              </div>
+
+              <button id="btn-guardar-avisos" type="submit" class="secundario">Guardar preferencias</button>
+              <p id="estado-avisos" role="status" aria-live="polite"></p>
+            </form>
+          </section>
         </aside>
       </div>
     </section>

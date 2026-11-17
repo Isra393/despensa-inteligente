@@ -6,6 +6,7 @@ const { CadMemoria } = require("./cadMemoria");
 const { crearSesion } = require("./sesion");
 const { registroActividad } = require("./registroActividad");
 const { crearAccesoGoogle } = require("./accesoGoogle");
+const { crearTareas } = require("./avisos");
 
 function crearApp(
   sistema = new Sistema(new CadMemoria()),
@@ -14,7 +15,8 @@ function crearApp(
     produccion = process.env.NODE_ENV === "production",
     store,
     correo,
-    google
+    google,
+    tokenTareas
   } = {}
 ) {
   const app = express();
@@ -44,6 +46,8 @@ function crearApp(
   });
 
   app.use("/api", crearAccesoGoogle(sistema, google));
+
+  app.use("/api", crearTareas(sistema, { correo, tokenTareas }));
 
   app.use("/api", crearApi(sistema, {
   produccion,
