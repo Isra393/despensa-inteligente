@@ -7,6 +7,7 @@ class CadMongo {
     this.baseDatos = baseDatos;
     this.usuarios = baseDatos.collection("usuarios");
     this.alimentos = baseDatos.collection("alimentos");
+    this.listaCompra = baseDatos.collection("listaCompra");
   }
 
   // Crea un índice si no existe. Si ya hay uno equivalente creado
@@ -44,6 +45,12 @@ class CadMongo {
 
     await CadMongo.asegurarIndice(
       this.alimentos,
+      { usuarioId: 1, id: 1 },
+      { unique: true }
+    );
+
+    await CadMongo.asegurarIndice(
+      this.listaCompra,
       { usuarioId: 1, id: 1 },
       { unique: true }
     );
@@ -208,6 +215,53 @@ class CadMongo {
   async eliminarAlimento(usuarioId, id) {
     const resultado = await this.alimentos.deleteOne({ usuarioId, id });
     return resultado.deletedCount === 1;
+  }
+
+  // ---------------------------------------------------------------
+  // Lista de la compra. Todas las consultas filtran por el propietario.
+  // ---------------------------------------------------------------
+
+  async listarElementosLista(usuarioId) {
+    return this.listaCompra
+      .find({ usuarioId }, { projection: { _id: 0 } })
+      .toArray();
+  }
+
+  async contarElementosLista(usuarioId) {
+    return this.listaCompra.countDocuments({ usuarioId });
+  }
+
+  async buscarElementoLista(usuarioId, id) {
+    return this.listaCompra.findOne(
+      { usuarioId, id },
+      { projection: { _id: 0 } }
+    );
+  }
+
+  async guardarElementoLista(elemento) {
+    const { _id, ...datos } = elemento;
+
+    await this.listaCompra.replaceOne(
+      { usuarioId: datos.usuarioId, id: datos.id },
+      datos,
+      { upsert: true }
+    );
+
+    return { ...datos };
+  }
+
+  async eliminarElementoLista(usuarioId, id) {
+    const resultado = await this.listaCompra.deleteOne({ usuarioId, id });
+    return resultado.deletedCount === 1;
+  }
+
+  async eliminarElementosComprados(usuarioId) {
+    const resultado = await this.listaCompra.deleteMany({
+      usuarioId,
+      comprado: true
+    });
+
+    return resultado.deletedCount;
   }
 }
 

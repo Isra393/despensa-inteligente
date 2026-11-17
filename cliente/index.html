@@ -14,6 +14,7 @@
   <script src="/clienteRest.js" defer></script>
   <script src="/despensa.js" defer></script>
   <script src="/avisos.js" defer></script>
+  <script src="/listaCompra.js" defer></script>
   <script src="/googleOneTap.js" defer></script>
   <script src="/controlWeb.js" defer></script>
 </head>
@@ -235,6 +236,12 @@
                 <label for="alimento-caducidad">Caduca el (opcional)</label>
                 <input id="alimento-caducidad" type="date" min="2000-01-01" max="2100-12-31">
               </div>
+
+              <div class="campo campo-ancho">
+                <label for="alimento-minimo">Añadir a la compra si quedan (opcional)</label>
+                <input id="alimento-minimo" type="number" min="0" max="100000" step="any" placeholder="Sin mínimo" aria-describedby="ayuda-minimo">
+                <p id="ayuda-minimo" class="ayuda ayuda-oscura">Cuando la cantidad baje a este valor, aparecerá en tu lista de la compra.</p>
+              </div>
             </div>
 
             <p id="error-alimento" class="error" role="alert"></p>
@@ -246,6 +253,38 @@
               </button>
             </div>
           </form>
+
+          <section id="lista-compra" class="tarjeta tarjeta-lateral" aria-labelledby="titulo-lista">
+            <div class="cabecera-lista">
+              <h3 id="titulo-lista">Lista de la compra</h3>
+              <span id="contador-lista" class="pastilla" hidden></span>
+            </div>
+
+            <p id="estado-lista" class="ayuda" role="status" aria-live="polite"></p>
+
+            <ul id="lista-automaticos" class="lista-elementos" aria-label="Alimentos por reponer"></ul>
+            <ul id="lista-manuales" class="lista-elementos" aria-label="Productos añadidos por ti"></ul>
+
+            <form id="form-lista" class="form-lista" novalidate>
+              <div class="campo">
+                <label for="lista-nombre" class="solo-lector">Producto</label>
+                <input id="lista-nombre" type="text" maxlength="80" placeholder="Añadir producto" required>
+              </div>
+
+              <div class="campo">
+                <label for="lista-cantidad" class="solo-lector">Cantidad (opcional)</label>
+                <input id="lista-cantidad" type="text" maxlength="40" placeholder="Cantidad">
+              </div>
+
+              <button id="btn-agregar-lista" type="submit">Añadir</button>
+            </form>
+
+            <p id="error-lista" class="error" role="alert"></p>
+
+            <button id="btn-vaciar-comprados" type="button" class="secundario boton-pequeno" hidden>
+              Quitar los comprados
+            </button>
+          </section>
 
           <section id="avisos" class="tarjeta tarjeta-lateral" aria-labelledby="titulo-avisos">
             <h3 id="titulo-avisos">Avisos por correo</h3>

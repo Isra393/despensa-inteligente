@@ -97,7 +97,8 @@ test("Validación: limpia los datos y aplica valores por defecto", () => {
     cantidad: 1,
     unidad: "unidades",
     categoria: "otros",
-    fechaCaducidad: null
+    fechaCaducidad: null,
+    stockMinimo: null
   });
 });
 

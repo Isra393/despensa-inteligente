@@ -34,6 +34,12 @@ function identificarOperacion(req) {
 
   if (ruta === "/preferencias/avisos") return "preferencias_avisos";
 
+  if (ruta === "/lista-compra") return "lista_compra";
+
+  if (/^\/lista-compra\/[^/]+\/?$/.test(ruta)) {
+    return "operacion_lista_compra";
+  }
+
   if (ruta === "/tareas/avisos-caducidad") return "tarea_avisos_caducidad";
 
   if (/^\/alimentos\/[^/]+\/?$/.test(ruta)) {

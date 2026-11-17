@@ -25,7 +25,13 @@ function sesionCaducada() {
   mostrarMensaje("La sesión ha caducado. Inicia sesión de nuevo.", true);
 }
 
-const despensa = new Despensa(rest, { mostrarMensaje, sesionCaducada });
+const listaCompra = new ListaCompra(rest, { mostrarMensaje, sesionCaducada });
+
+const despensa = new Despensa(rest, {
+  mostrarMensaje,
+  sesionCaducada,
+  alCambiar: () => listaCompra.cargar()
+});
 const avisos = new Avisos(rest, { mostrarMensaje, sesionCaducada });
 
 const oneTap = new GoogleOneTap(rest, {
@@ -78,6 +84,7 @@ function mostrarAcceso() {
   botonAdmin.hidden = true;
   usuario.textContent = "";
   despensa.limpiar();
+  listaCompra.limpiar();
   avisos.limpiar();
 }
 

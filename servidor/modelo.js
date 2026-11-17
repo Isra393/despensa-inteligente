@@ -9,8 +9,13 @@ const {
   fechaLocal,
   estadoCaducidad,
   validarDatosAlimento,
-  compararAlimentos
+  compararAlimentos,
+  bajoMinimo
 } = require("./alimentos");
+const {
+  MAX_ELEMENTOS_LISTA,
+  validarElementoLista
+} = require("./listaCompra");
 
 class ErrorNegocio extends Error {
   constructor(mensaje, estadoHTTP) {
@@ -365,6 +370,8 @@ class Sistema {
       unidad: alimento.unidad,
       categoria: alimento.categoria,
       fechaCaducidad: alimento.fechaCaducidad,
+      stockMinimo: alimento.stockMinimo ?? null,
+      bajoMinimo: bajoMinimo(alimento),
       estadoCaducidad: estado,
       diasRestantes,
       creadoEn: alimento.creadoEn,
@@ -585,6 +592,117 @@ class Sistema {
 
     usuario.avisoCaducidadEnviadoEl = fechaLocal(ahora);
     await this.cad.guardar(usuario);
+  }
+
+  // ---------------------------------------------------------------
+  // Lista de la compra (Sprint 3)
+  // Combina los alimentos que han bajado de su mínimo (automáticos)
+  // con los elementos que el usuario añade a mano.
+  // ---------------------------------------------------------------
+
+  elementoListaPublico(elemento) {
+    return {
+      id: elemento.id,
+      nombre: elemento.nombre,
+      cantidad: elemento.cantidad,
+      comprado: elemento.comprado,
+      creadoEn: elemento.creadoEn
+    };
+  }
+
+  async obtenerListaCompra(emailSolicitante) {
+    const usuario = await this.obtenerUsuarioSesion(emailSolicitante);
+
+    const automaticos = (await this.cad.listarAlimentos(usuario.id))
+      .filter(bajoMinimo)
+      .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"))
+      .map(alimento => ({
+        alimentoId: alimento.id,
+        nombre: alimento.nombre,
+        cantidad: alimento.cantidad,
+        unidad: alimento.unidad,
+        stockMinimo: alimento.stockMinimo
+      }));
+
+    // Primero lo pendiente y, dentro de cada grupo, por orden de alta.
+    const manuales = (await this.cad.listarElementosLista(usuario.id))
+      .sort((a, b) =>
+        Number(a.comprado) - Number(b.comprado) ||
+        new Date(a.creadoEn) - new Date(b.creadoEn)
+      )
+      .map(elemento => this.elementoListaPublico(elemento));
+
+    return { automaticos, manuales };
+  }
+
+  async agregarElementoLista(emailSolicitante, datos, ahora = new Date()) {
+    const usuario = await this.obtenerUsuarioSesion(emailSolicitante);
+    const resultado = validarElementoLista(datos);
+
+    if (resultado.error) {
+      throw new ErrorNegocio(resultado.error, 400);
+    }
+
+    const total = await this.cad.contarElementosLista(usuario.id);
+
+    if (total >= MAX_ELEMENTOS_LISTA) {
+      throw new ErrorNegocio(
+        `La lista no puede tener más de ${MAX_ELEMENTOS_LISTA} elementos`,
+        409
+      );
+    }
+
+    const elemento = {
+      id: randomUUID(),
+      usuarioId: usuario.id,
+      ...resultado.datos,
+      comprado: false,
+      creadoEn: ahora
+    };
+
+    await this.cad.guardarElementoLista(elemento);
+
+    return this.elementoListaPublico(elemento);
+  }
+
+  async marcarElementoLista(emailSolicitante, idElemento, datos) {
+    const usuario = await this.obtenerUsuarioSesion(emailSolicitante);
+    const id = this.validarIdAlimento(idElemento);
+
+    if (!datos || typeof datos.comprado !== "boolean") {
+      throw new ErrorNegocio("Indica si el elemento está comprado", 400);
+    }
+
+    const elemento = await this.cad.buscarElementoLista(usuario.id, id);
+
+    if (!elemento) {
+      throw new ErrorNegocio("El elemento no existe", 404);
+    }
+
+    const actualizado = { ...elemento, comprado: datos.comprado };
+    await this.cad.guardarElementoLista(actualizado);
+
+    return this.elementoListaPublico(actualizado);
+  }
+
+  async eliminarElementoLista(emailSolicitante, idElemento) {
+    const usuario = await this.obtenerUsuarioSesion(emailSolicitante);
+    const id = this.validarIdAlimento(idElemento);
+
+    const eliminado = await this.cad.eliminarElementoLista(usuario.id, id);
+
+    if (!eliminado) {
+      throw new ErrorNegocio("El elemento no existe", 404);
+    }
+
+    return { mensaje: "Elemento eliminado" };
+  }
+
+  async eliminarElementosComprados(emailSolicitante) {
+    const usuario = await this.obtenerUsuarioSesion(emailSolicitante);
+    const eliminados = await this.cad.eliminarElementosComprados(usuario.id);
+
+    return { eliminados };
   }
 }
 function calcularBloqueo(fallos, ahora) {

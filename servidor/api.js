@@ -215,6 +215,60 @@ function crearApi(
   // Alimentos de la despensa del usuario que ha iniciado sesión.
   // ---------------------------------------------------------------
 
+  // Lista de la compra. La ruta de comprados va antes que /:id.
+  router.get("/lista-compra", async (req, res, next) => {
+    try {
+      res.json(await sistema.obtenerListaCompra(req.session.email));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/lista-compra", async (req, res, next) => {
+    try {
+      const elemento = await sistema.agregarElementoLista(
+        req.session.email,
+        req.body
+      );
+
+      res.status(201).json({ elemento });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.delete("/lista-compra/comprados", async (req, res, next) => {
+    try {
+      res.json(await sistema.eliminarElementosComprados(req.session.email));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.patch("/lista-compra/:id", async (req, res, next) => {
+    try {
+      const elemento = await sistema.marcarElementoLista(
+        req.session.email,
+        req.params.id,
+        req.body
+      );
+
+      res.json({ elemento });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.delete("/lista-compra/:id", async (req, res, next) => {
+    try {
+      res.json(
+        await sistema.eliminarElementoLista(req.session.email, req.params.id)
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Preferencias de los avisos de caducidad por correo.
   router.get("/preferencias/avisos", async (req, res, next) => {
     try {

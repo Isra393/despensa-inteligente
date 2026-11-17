@@ -319,11 +319,24 @@ detiene las instancias sin tráfico. Hay dos formas:
 
 Sin `TAREAS_TOKEN` (o con menos de 32 caracteres), la ruta devuelve 503.
 
+### Sprint 3: lista de la compra automática
+
+- Cada alimento puede tener un **mínimo** opcional (`stockMinimo`).
+  Cuando su cantidad baja a ese valor o menos, aparece en la lista
+  de la compra y en la tabla se marca con «Reponer».
+- Al actualizar la cantidad del alimento por encima del mínimo,
+  sale de la lista automáticamente.
+- Además se pueden añadir productos a mano, con una cantidad opcional
+  en texto libre («1 kg», «un paquete»), marcarlos como comprados,
+  quitarlos uno a uno o quitar todos los comprados.
+- Cada usuario solo ve y modifica su propia lista
+  (máximo 200 productos añadidos a mano).
+
 ## Persistencia
 
-Los usuarios, los alimentos y las sesiones se almacenan en las
-colecciones `usuarios`, `alimentos` y `sesiones` de la base
-`despensa_inteligente`.
+Los usuarios, los alimentos, la lista de la compra y las sesiones se
+almacenan en las colecciones `usuarios`, `alimentos`, `listaCompra`
+y `sesiones` de la base `despensa_inteligente`.
 
 Cada alimento guarda el `id` de su propietario en `usuarioId`.
 El índice único `{ usuarioId, id }` acelera las consultas por usuario.
@@ -354,6 +367,11 @@ Cambiar `SESSION_SECRET` invalida las cookies firmadas con la clave anterior.
 | GET | `/api/usuarios` | Administrador |
 | GET | `/api/usuarios/:email/activo` | Administrador |
 | DELETE | `/api/usuarios/:email` | Administrador o propietario de la cuenta |
+| GET | `/api/lista-compra` | Usuario autenticado; solo su lista |
+| POST | `/api/lista-compra` | Usuario autenticado |
+| PATCH | `/api/lista-compra/:id` | Propietario del elemento |
+| DELETE | `/api/lista-compra/:id` | Propietario del elemento |
+| DELETE | `/api/lista-compra/comprados` | Usuario autenticado |
 | GET | `/api/preferencias/avisos` | Usuario autenticado |
 | PUT | `/api/preferencias/avisos` | Usuario autenticado |
 | POST | `/api/tareas/avisos-caducidad` | Planificador con `TAREAS_TOKEN` |
@@ -471,6 +489,27 @@ Categorías: `fruta y verdura`, `carne y pescado`, `lácteos y huevos`,
 ```
 
 Un alimento inexistente o de otro usuario devuelve 404.
+
+Los alimentos admiten además `"stockMinimo"` (número o `null`) y la
+respuesta incluye `"bajoMinimo"`.
+
+### Lista de la compra
+
+`GET /api/lista-compra` devuelve:
+
+```json
+{
+  "automaticos": [
+    { "alimentoId": "…", "nombre": "Leche", "cantidad": 0, "unidad": "l", "stockMinimo": 1 }
+  ],
+  "manuales": [
+    { "id": "…", "nombre": "Pan", "cantidad": null, "comprado": false, "creadoEn": "…" }
+  ]
+}
+```
+
+`POST /api/lista-compra` recibe `{ "nombre": "Pan", "cantidad": "2" }`
+y `PATCH /api/lista-compra/:id` recibe `{ "comprado": true }`.
 
 ### Avisos de caducidad
 

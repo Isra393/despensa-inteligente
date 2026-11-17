@@ -616,6 +616,118 @@ summary:focus-visible {
   cursor: pointer;
 }
 
+.ayuda-oscura {
+  color: #c9d0dc;
+}
+
+.cabecera-lista {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.cabecera-lista h3 {
+  margin: 0;
+}
+
+.lista-elementos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lista-elementos:empty {
+  display: none;
+}
+
+.lista-elementos li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--linea);
+}
+
+.lista-elementos .casilla {
+  flex: 1;
+  min-width: 0;
+  min-height: 36px;
+  font-weight: 500;
+}
+
+.lista-elementos .casilla span {
+  overflow-wrap: anywhere;
+}
+
+.elemento-detalle {
+  color: var(--gris);
+  font-size: 0.9rem;
+}
+
+.elemento-comprado .casilla span {
+  text-decoration: line-through;
+  color: var(--gris);
+}
+
+.elemento-automatico {
+  justify-content: space-between;
+}
+
+.elemento-automatico .nombre-automatico {
+  font-weight: 600;
+}
+
+
+button.boton-icono {
+  min-height: 36px;
+  min-width: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-color: transparent;
+  background: transparent;
+  color: var(--gris);
+}
+
+button.boton-icono:hover {
+  background: var(--rojo-fondo);
+  border-color: var(--rojo-fondo);
+  color: var(--rojo-texto);
+}
+
+.form-lista {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  margin-top: 14px;
+}
+
+.form-lista .campo:first-child {
+  grid-column: 1 / -1;
+}
+
+.form-lista button {
+  padding: 11px 16px;
+}
+
+#error-lista:empty,
+#estado-lista:empty {
+  display: none;
+}
+
+#estado-lista {
+  margin: 0 0 6px;
+}
+
+button.boton-pequeno {
+  min-height: 38px;
+  padding: 7px 16px;
+  font-size: 0.9rem;
+  margin-top: 12px;
+}
+
 #estado-avisos {
   margin: 0;
   font-size: 0.9rem;
@@ -806,8 +918,19 @@ th {
     grid-template-columns: 1fr;
   }
 
-  /* En el móvil, el formulario de alta va antes que la lista. */
+  /* En el móvil, el panel lateral se reparte: el formulario de alta va
+     antes que los alimentos, y la lista de la compra y los avisos después. */
   .despensa-lateral {
+    display: contents;
+  }
+
+  .despensa-cuerpo > *,
+  .despensa-lateral > * {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  #form-alimento {
     order: -1;
   }
 
@@ -854,6 +977,15 @@ th {
     justify-content: flex-start;
     padding-top: 6px;
   }
+}
+
+/* Va al final para imponerse a los colores de estado de la fila. */
+.pastilla.pastilla-reponer,
+td .pastilla.pastilla-reponer {
+  background: var(--ambar-fondo);
+  color: var(--ambar-texto);
+  font-size: 0.75rem;
+  padding: 3px 9px;
 }
 
 @media (prefers-reduced-motion: reduce) {

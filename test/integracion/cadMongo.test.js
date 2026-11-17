@@ -29,6 +29,7 @@ test.describe("Integración Sistema + CadMongo", { skip: motivoOmision }, () => 
   async function vaciar() {
     await cad.usuarios.deleteMany({});
     await cad.alimentos.deleteMany({});
+    await cad.listaCompra.deleteMany({});
   }
 
   async function cuentaActiva(email) {
@@ -61,6 +62,11 @@ test.describe("Integración Sistema + CadMongo", { skip: motivoOmision }, () => 
     assert.ok(usuarios.some(i => clave(i) === '{"googleSub":1}' && i.unique));
     assert.ok(
       alimentos.some(i => clave(i) === '{"usuarioId":1,"id":1}' && i.unique)
+    );
+
+    const lista = await cad.listaCompra.indexes();
+    assert.ok(
+      lista.some(i => clave(i) === '{"usuarioId":1,"id":1}' && i.unique)
     );
   });
 
@@ -192,6 +198,38 @@ test.describe("Integración Sistema + CadMongo", { skip: motivoOmision }, () => 
     assert.equal(
       (await sistema.listarAlimentos("ana@example.com")).alimentos.length,
       0
+    );
+  });
+
+  test("lista de la compra aislada por usuario", async () => {
+    await cuentaActiva("ana@example.com");
+    await cuentaActiva("luis@example.com");
+
+    await sistema.crearAlimento("ana@example.com", {
+      nombre: "Leche", cantidad: 0, unidad: "l", stockMinimo: 1
+    });
+
+    const pan = await sistema.agregarElementoLista(
+      "ana@example.com", { nombre: "Pan" }
+    );
+
+    await assert.rejects(
+      sistema.eliminarElementoLista("luis@example.com", pan.id),
+      { estadoHTTP: 404 }
+    );
+
+    await sistema.marcarElementoLista(
+      "ana@example.com", pan.id, { comprado: true }
+    );
+
+    const lista = await sistema.obtenerListaCompra("ana@example.com");
+    assert.equal(lista.automaticos[0].nombre, "Leche");
+    assert.equal(lista.manuales[0]._id, undefined);
+    assert.equal(lista.manuales[0].comprado, true);
+
+    assert.deepEqual(
+      await sistema.eliminarElementosComprados("ana@example.com"),
+      { eliminados: 1 }
     );
   });
 });

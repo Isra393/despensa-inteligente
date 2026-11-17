@@ -120,15 +120,47 @@ function validarDatosAlimento(datos) {
     };
   }
 
+  // Cantidad a partir de la cual el alimento pasa a la lista de la compra.
+  let stockMinimo = datos.stockMinimo ?? null;
+
+  if (stockMinimo === "") {
+    stockMinimo = null;
+  }
+
+  if (stockMinimo !== null) {
+    if (
+      typeof stockMinimo !== "number" ||
+      !Number.isFinite(stockMinimo) ||
+      stockMinimo < 0 ||
+      stockMinimo > 100000
+    ) {
+      return { error: "El mínimo debe ser un número entre 0 y 100000" };
+    }
+
+    if (unidad === "unidades" && !Number.isInteger(stockMinimo)) {
+      return { error: "El mínimo en unidades debe ser un número entero" };
+    }
+
+    stockMinimo = Math.round(stockMinimo * 1000) / 1000;
+  }
+
   return {
     datos: {
       nombre,
       cantidad: Math.round(cantidad * 1000) / 1000,
       unidad,
       categoria,
-      fechaCaducidad
+      fechaCaducidad,
+      stockMinimo
     }
   };
+}
+
+function bajoMinimo(alimento) {
+  return (
+    typeof alimento.stockMinimo === "number" &&
+    alimento.cantidad <= alimento.stockMinimo
+  );
 }
 
 // Ordena por caducidad (primero lo que antes caduca) y después por nombre.
@@ -155,5 +187,6 @@ module.exports = {
   fechaLocal,
   estadoCaducidad,
   validarDatosAlimento,
-  compararAlimentos
+  compararAlimentos,
+  bajoMinimo
 };

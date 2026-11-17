@@ -2,10 +2,12 @@
 // Recibe el cliente REST y dos funciones de ControlWeb para mostrar
 // mensajes generales y reaccionar si la sesión ha caducado.
 class Despensa {
-  constructor(rest, { mostrarMensaje, sesionCaducada }) {
+  constructor(rest, { mostrarMensaje, sesionCaducada, alCambiar = () => {} }) {
     this.rest = rest;
     this.mostrarMensaje = mostrarMensaje;
     this.sesionCaducada = sesionCaducada;
+    // Avisa a otros componentes (lista de la compra) de que hay cambios.
+    this.alCambiar = alCambiar;
 
     this.alimentos = [];
     this.editandoId = null;
@@ -28,7 +30,8 @@ class Despensa {
       cantidad: document.querySelector("#alimento-cantidad"),
       unidad: document.querySelector("#alimento-unidad"),
       categoria: document.querySelector("#alimento-categoria"),
-      fechaCaducidad: document.querySelector("#alimento-caducidad")
+      fechaCaducidad: document.querySelector("#alimento-caducidad"),
+      stockMinimo: document.querySelector("#alimento-minimo")
     };
 
     this.filtroTexto = document.querySelector("#filtro-texto");
@@ -40,6 +43,11 @@ class Despensa {
     });
 
     this.botonCancelar.addEventListener("click", () => this.reiniciarFormulario());
+
+    // Al corregir un campo desaparece el error anterior.
+    this.formulario.addEventListener("input", () => {
+      this.errorFormulario.textContent = "";
+    });
     this.filtroTexto.addEventListener("input", () => this.pintar());
     this.filtroEstado.addEventListener("change", () => this.pintar());
   }
@@ -76,6 +84,7 @@ class Despensa {
       this.alimentos = alimentos;
       this.pintarResumen(resumen);
       this.pintar();
+      this.alCambiar();
     } catch (error) {
       if (version !== this.version) return;
       this.tratarError(error, this.estado);
@@ -248,9 +257,21 @@ class Despensa {
 
     nombre.append(punto, alimento.nombre);
 
+    const cantidad = this.crearCelda(
+      `${alimento.cantidad} ${alimento.unidad}`,
+      "Cantidad"
+    );
+
+    if (alimento.bajoMinimo) {
+      const reponer = document.createElement("span");
+      reponer.className = "pastilla pastilla-reponer";
+      reponer.textContent = "Reponer";
+      cantidad.append(" ", reponer);
+    }
+
     fila.append(
       nombre,
-      this.crearCelda(`${alimento.cantidad} ${alimento.unidad}`, "Cantidad"),
+      cantidad,
       this.crearCelda(alimento.categoria, "Categoría"),
       caducidad,
       celdaAcciones
@@ -290,6 +311,30 @@ class Despensa {
       };
     }
 
+    const minimoTexto = this.campos.stockMinimo.value.trim();
+    const stockMinimo = minimoTexto === "" ? null : Number(minimoTexto);
+
+    if (
+      stockMinimo !== null &&
+      (!Number.isFinite(stockMinimo) || stockMinimo < 0 || stockMinimo > 100000)
+    ) {
+      return {
+        error: "El mínimo debe ser un número entre 0 y 100000.",
+        campo: this.campos.stockMinimo
+      };
+    }
+
+    if (
+      stockMinimo !== null &&
+      unidad === "unidades" &&
+      !Number.isInteger(stockMinimo)
+    ) {
+      return {
+        error: "Si cuentas por unidades, el mínimo debe ser un número entero.",
+        campo: this.campos.stockMinimo
+      };
+    }
+
     if (!this.campos.fechaCaducidad.checkValidity()) {
       return {
         error: "La fecha de caducidad no es válida.",
@@ -303,7 +348,8 @@ class Despensa {
         cantidad,
         unidad,
         categoria: this.campos.categoria.value,
-        fechaCaducidad: this.campos.fechaCaducidad.value || null
+        fechaCaducidad: this.campos.fechaCaducidad.value || null,
+        stockMinimo
       }
     };
   }
@@ -345,6 +391,8 @@ class Despensa {
     this.campos.unidad.value = alimento.unidad;
     this.campos.categoria.value = alimento.categoria;
     this.campos.fechaCaducidad.value = alimento.fechaCaducidad || "";
+    this.campos.stockMinimo.value =
+      alimento.stockMinimo === null ? "" : alimento.stockMinimo;
 
     this.tituloFormulario.textContent = `Editar «${alimento.nombre}»`;
     this.botonGuardar.textContent = "Guardar cambios";

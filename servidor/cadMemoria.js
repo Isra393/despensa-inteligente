@@ -2,6 +2,49 @@ class CadMemoria {
   constructor() {
     this.usuarios = new Map();
     this.alimentos = new Map();
+    this.listaCompra = new Map();
+  }
+
+  // Lista de la compra: misma clave que los alimentos.
+  async listarElementosLista(usuarioId) {
+    return [...this.listaCompra.values()]
+      .filter(elemento => elemento.usuarioId === usuarioId)
+      .map(elemento => ({ ...elemento }));
+  }
+
+  async contarElementosLista(usuarioId) {
+    return (await this.listarElementosLista(usuarioId)).length;
+  }
+
+  async buscarElementoLista(usuarioId, id) {
+    const elemento = this.listaCompra.get(this.claveAlimento(usuarioId, id));
+    return elemento ? { ...elemento } : null;
+  }
+
+  async guardarElementoLista(elemento) {
+    this.listaCompra.set(
+      this.claveAlimento(elemento.usuarioId, elemento.id),
+      { ...elemento }
+    );
+
+    return { ...elemento };
+  }
+
+  async eliminarElementoLista(usuarioId, id) {
+    return this.listaCompra.delete(this.claveAlimento(usuarioId, id));
+  }
+
+  async eliminarElementosComprados(usuarioId) {
+    let eliminados = 0;
+
+    for (const [clave, elemento] of this.listaCompra) {
+      if (elemento.usuarioId === usuarioId && elemento.comprado) {
+        this.listaCompra.delete(clave);
+        eliminados++;
+      }
+    }
+
+    return eliminados;
   }
 
   // Alimentos: la clave combina propietario e identificador.
