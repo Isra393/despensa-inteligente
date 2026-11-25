@@ -1,3 +1,10 @@
+---
+type: Proceso
+title: Operaciones en Google Cloud con GitHub Actions
+description: Flujo de GitHub Actions con Workload Identity Federation para secretos, variables de Cloud Run y Cloud Scheduler.
+timestamp: 2026-11-18
+---
+
 # Operaciones en Google Cloud con GitHub Actions
 
 El flujo **Operaciones Google Cloud** (`.github/workflows/operaciones-gcp.yml`)

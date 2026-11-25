@@ -22,9 +22,12 @@ jobs:
         with:
           node-version: "24"
           cache: npm
+          cache-dependency-path: backend/package-lock.json
 
       - name: Instalar dependencias
+        working-directory: backend
         run: npm ci
 
       - name: Ejecutar pruebas
+        working-directory: backend
         run: npm test

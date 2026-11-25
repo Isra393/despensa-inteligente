@@ -1,7 +1,12 @@
 node_modules
+**/node_modules
 .git
 .github
 .env
 .env.*
-test
+**/.env
+**/.env.*
+backend/*.test.js
+docs
+infra
 npm-debug.log*
