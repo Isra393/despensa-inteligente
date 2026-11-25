@@ -39,7 +39,7 @@ Estados: **hecho** (implementado y con pruebas o comprobación), **parcial** (im
 | RF-11 | Registro de actividad | hecho | `registroActividad.js` con niveles para Cloud Logging. |
 | RF-12 | Prueba técnica: bloqueo por intentos fallidos | hecho | `calcularBloqueo` en `modelo.js`; `variante4.test.js`. |
 
-## Despensa (sprints 2 a 4)
+## Despensa (Sprint 2)
 
 | ID | Requisito | Estado | Evidencia |
 |---|---|---|---|

@@ -10,8 +10,8 @@ timestamp: 2026-11-25
 ## Flujo de trabajo
 
 - Cada cambio empieza con una issue que explica qué se propone y por qué (por ejemplo, [#25](https://github.com/Isra393/despensa-inteligente/issues/25), [#27](https://github.com/Isra393/despensa-inteligente/issues/27) o [#29](https://github.com/Isra393/despensa-inteligente/issues/29)).
-- El trabajo se hace en una rama propia (`h1-…` a `h4-…` en el Sprint 1, `sprintN-…` después, y `fix/…`, `feat/…` o `refactor/…` para correcciones, mejoras y reorganizaciones).
-- Cada rama se entrega con un pull request hacia `main` que enlaza su issue (`Closes #N`). En los sprints 3 y 4 cada funcionalidad tuvo su propio PR.
+- El trabajo se hace en una rama propia (`h1-…` a `h4-…` en el Sprint 1, `sprint2-…`, `sprint3-…` o `sprint4-…` en el Sprint 2 (el número de la rama no siempre coincide con el sprint), y `fix/…`, `feat/…` o `refactor/…` para correcciones, mejoras y reorganizaciones).
+- Cada rama se entrega con un pull request hacia `main` que enlaza su issue (`Closes #N`). Desde el PR #13 cada funcionalidad tuvo su propio PR.
 - Si dos ramas dependen una de otra, se integran juntas en `main` con un PR de integración (como el [#18](https://github.com/Isra393/despensa-inteligente/pull/18)).
 - `main` se integra solo cuando el CI pasa.
 

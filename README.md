@@ -628,6 +628,4 @@ Las credenciales configuradas deben pertenecer al mismo cliente OAuth.
 Las funcionalidades de cada sprint, con sus pull requests y comprobaciones, están en:
 
 - [Sprint 1](docs/sprint-1.md): usuarios, sesiones, persistencia, roles, confirmación por correo y acceso con Google.
-- [Sprint 2](docs/sprint-2.md): gestión de alimentos, Google One Tap y pruebas de integración con MongoDB.
-- [Sprint 3](docs/sprint-3.md): estilo visual «Mercado», avisos de caducidad, lista de la compra, ubicaciones y operaciones de Google Cloud.
-- [Sprint 4](docs/sprint-4.md): consumo rápido, escáner de código de barras, recetas, hogar y estadísticas.
+- [Sprint 2](docs/sprint-2.md): gestión de alimentos, Google One Tap, estilo visual «Mercado», avisos de caducidad, lista de la compra, ubicaciones, consumo rápido, escáner de código de barras, recetas, hogar, estadísticas y operaciones de Google Cloud.

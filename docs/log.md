@@ -16,23 +16,23 @@ Rama `refactor/actualizar-estructura`, [issue #29](https://github.com/Isra393/de
 - Las pruebas de `test/` pasan junto a su módulo (`backend/*.test.js`); la de integración se llama `cadMongo.integracion.test.js`.
 - `package.json`, `package-lock.json` y `.env.example` pasan a `backend/`. El servidor lee `backend/.env` aunque se arranque desde otra carpeta.
 - El `Dockerfile` sigue en la raíz y copia `backend/`; el CI ejecuta las pruebas desde `backend/`.
-- Se crea la documentación de `docs/` y el README pasa a tener tecnologías justificadas, instrucciones de ejecución y API; el detalle de cada sprint se mueve a `docs/sprint-N.md`.
+- Se crea la documentación de `docs/` y el README pasa a tener tecnologías justificadas, instrucciones de ejecución y API; el detalle de cada sprint se mueve a `docs/sprint-1.md` y `docs/sprint-2.md`.
 
 Se añade una prueba que comprueba que todos los estilos y scripts enlazados en la página se sirven. La suite queda en **178 pruebas pasadas** con `cd backend && npm test`.
 
 Siguen abiertas, propuestas por otros miembros del equipo: la [issue #25](https://github.com/Isra393/despensa-inteligente/issues/25) con el [PR #26](https://github.com/Isra393/despensa-inteligente/pull/26) (unificar singular y plural en el ranking de alimentos tirados) y la [issue #27](https://github.com/Isra393/despensa-inteligente/issues/27) con el [PR #28](https://github.com/Isra393/despensa-inteligente/pull/28) (evitar productos duplicados en la lista de la compra). Ambos PR tocan `servidor/modelo.js` y tendrán que adaptarse a la nueva ruta `backend/modelo.js`.
 
-## 2026-11-18 — Sprint 4: consumo rápido, escáner, recetas, hogar y estadísticas
+## 2026-11-18 — Sprint 2: consumo rápido, escáner, recetas, hogar y estadísticas
 
-PR [#20](https://github.com/Isra393/despensa-inteligente/pull/20) a [#24](https://github.com/Isra393/despensa-inteligente/pull/24), uno por funcionalidad: botones para restar y sumar cantidades, escáner de código de barras con Open Food Facts, recetas con lo que caduca antes, despensa compartida entre los miembros de un hogar y estadísticas de desperdicio con exportación a CSV. Detalle en [sprint-4.md](sprint-4.md).
+PR [#20](https://github.com/Isra393/despensa-inteligente/pull/20) a [#24](https://github.com/Isra393/despensa-inteligente/pull/24), uno por funcionalidad: botones para restar y sumar cantidades, escáner de código de barras con Open Food Facts, recetas con lo que caduca antes, despensa compartida entre los miembros de un hogar y estadísticas de desperdicio con exportación a CSV. Detalle en [sprint-2.md](sprint-2.md).
 
 ## 2026-11-18 — Script de configuración de Google Cloud
 
 [PR #19](https://github.com/Isra393/despensa-inteligente/pull/19): el script de `infra/` concede el permiso de lectura de imágenes de Artifact Registry que necesitaba la operación `configurar-avisos`.
 
-## 2026-11-17 — Sprint 3: estilo, avisos, lista de la compra, ubicaciones y operaciones
+## 2026-11-17 — Sprint 2: estilo, avisos, lista de la compra, ubicaciones y operaciones
 
-PR [#13](https://github.com/Isra393/despensa-inteligente/pull/13) a [#18](https://github.com/Isra393/despensa-inteligente/pull/18): estilo visual «Mercado», avisos de caducidad por correo, lista de la compra automática, ubicaciones y el flujo de operaciones de Google Cloud con GitHub Actions. Las ramas de avisos, lista y ubicaciones se integraron juntas en `main` con el PR #18. Detalle en [sprint-3.md](sprint-3.md).
+PR [#13](https://github.com/Isra393/despensa-inteligente/pull/13) a [#18](https://github.com/Isra393/despensa-inteligente/pull/18): estilo visual «Mercado», avisos de caducidad por correo, lista de la compra automática, ubicaciones y el flujo de operaciones de Google Cloud con GitHub Actions. Las ramas de avisos, lista y ubicaciones se integraron juntas en `main` con el PR #18. Detalle en [sprint-2.md](sprint-2.md).
 
 ## 2026-11-17 — Sprint 2: gestión de alimentos y Google One Tap
 
