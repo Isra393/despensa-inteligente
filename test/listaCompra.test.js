@@ -140,6 +140,53 @@ test("Lista: añade, marca, borra y vacía los comprados", async () => {
   assert.deepEqual(manuales.map(e => e.nombre), ["Café"]);
 });
 
+test("Lista: impide añadir productos duplicados pendientes", async () => {
+  const { sistema } = await preparar();
+  const email = "ana@example.com";
+
+  // Añadimos el primer producto.
+  await sistema.agregarElementoLista(email, {
+    nombre: "Leche"
+  });
+
+  // No permite añadir el mismo producto.
+  await assert.rejects(
+    sistema.agregarElementoLista(email, {
+      nombre: "Leche"
+    }),
+    {
+      estadoHTTP: 409
+    }
+  );
+
+  // Tampoco permite duplicados cambiando mayúsculas.
+  await assert.rejects(
+    sistema.agregarElementoLista(email, {
+      nombre: "LECHE"
+    }),
+    {
+      estadoHTTP: 409
+    }
+  );
+
+  // Se permite volver a añadirlo cuando ya está comprado.
+  const lista = await sistema.obtenerListaCompra(email);
+  const leche = lista.manuales[0];
+
+  await sistema.marcarElementoLista(
+    email,
+    leche.id,
+    { comprado: true }
+  );
+
+  const nuevo = await sistema.agregarElementoLista(email, {
+    nombre: "Leche"
+  });
+
+  assert.equal(nuevo.nombre, "Leche");
+  assert.equal(nuevo.comprado, false);
+});
+
 test("Lista: cada usuario solo ve y modifica la suya", async () => {
   const { sistema } = await preparar();
 

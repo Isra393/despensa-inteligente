@@ -918,6 +918,32 @@ class Sistema {
       throw new ErrorNegocio(resultado.error, 400);
     }
 
+    // Evita añadir productos que ya están pendientes de compra.
+    const nombreNormalizado = resultado.datos.nombre
+      .trim()
+      .replace(/\s+/g, " ")
+      .toLocaleLowerCase("es");
+
+    const elementosExistentes =
+      await this.cad.listarElementosLista(usuario.despensaId);
+
+    const duplicado = elementosExistentes.some(elemento => {
+      const nombreExistente = elemento.nombre
+        .trim()
+        .replace(/\s+/g, " ")
+        .toLocaleLowerCase("es");
+
+      return !elemento.comprado &&
+        nombreExistente === nombreNormalizado;
+    });
+
+    if (duplicado) {
+      throw new ErrorNegocio(
+        "Este producto ya está pendiente en la lista de la compra",
+        409
+      );
+    }
+
     const total = await this.cad.contarElementosLista(usuario.despensaId);
 
     if (total >= MAX_ELEMENTOS_LISTA) {
