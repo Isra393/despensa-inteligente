@@ -80,6 +80,60 @@ test("Estadísticas: cuenta por mes, calcula el aprovechamiento y el ranking", (
   ]);
 });
 
+test("Ranking: unifica singular y plural sin recortar palabras arbitrariamente", () => {
+  const ahora = new Date("2026-11-23T11:00:00Z");
+  const opciones = { ahora, meses: 1 };
+
+  const ranking = nombres => calcularEstadisticas(
+    nombres.map((nombre, i) => movimiento("tirado", `2026-11-${20 + i}`, nombre)),
+    opciones
+  ).masTirados;
+
+  // Tomate/Tomates en ambos órdenes y conservando el primer nombre visible.
+  assert.deepEqual(ranking(["Tomate", "Tomates"]), [{ nombre: "Tomate", veces: 2 }]);
+  assert.deepEqual(ranking(["Tomates", "Tomate"]), [{ nombre: "Tomates", veces: 2 }]);
+
+  // Yogur/Yogures en ambos órdenes.
+  assert.deepEqual(ranking(["Yogur", "Yogures"]), [{ nombre: "Yogur", veces: 2 }]);
+  assert.deepEqual(ranking(["Yogures", "Yogur"]), [{ nombre: "Yogures", veces: 2 }]);
+
+  // Mayúsculas, tildes y espacios no impiden la agrupación.
+  assert.deepEqual(ranking(["Tomate", "  TOMATES "]), [{ nombre: "Tomate", veces: 2 }]);
+  assert.deepEqual(ranking(["Yógur", "YOGURES"]), [{ nombre: "Yógur", veces: 2 }]);
+
+  // Nombres compuestos: plurales equivalentes, pero sin mezclar productos distintos.
+  assert.deepEqual(
+    ranking(["Tomate frito", "Tomates fritos", "Tomate cherry", "Leche", "Lechuga"]),
+    [
+      { nombre: "Tomate frito", veces: 2 },
+      { nombre: "Leche", veces: 1 },
+      { nombre: "Lechuga", veces: 1 },
+      { nombre: "Tomate cherry", veces: 1 }
+    ]
+  );
+
+  // No se muta la entrada y solo cuentan los «tirado» dentro del periodo.
+  const movimientos = [
+    movimiento("tirado", "2026-11-20", "Tomate"),
+    movimiento("tirado", "2026-11-21", "Tomates", true),
+    movimiento("terminado", "2026-11-22", "Tomates"),
+    movimiento("consumo", "2026-11-23", "Tomates"),
+    movimiento("tirado", "2026-10-31", "Tomates"),
+    movimiento("tirado", "2026-12-01", "Tomates")
+  ];
+  const copia = movimientos.map(m => ({ ...m, fecha: new Date(m.fecha) }));
+
+  const datos = calcularEstadisticas(movimientos, opciones);
+
+  assert.deepEqual(movimientos, copia);
+  assert.deepEqual(datos.masTirados, [{ nombre: "Tomate", veces: 2 }]);
+  assert.deepEqual(datos.mensual, [
+    { mes: "2026-11", terminados: 1, tirados: 2, consumos: 1 }
+  ]);
+  assert.equal(datos.totales.tirados, 2);
+  assert.equal(datos.totales.tiradosCaducados, 1);
+});
+
 test("Estadísticas: sin datos, el aprovechamiento es null", () => {
   const datos = calcularEstadisticas([], { ahora: AHORA, meses: 6 });
 
