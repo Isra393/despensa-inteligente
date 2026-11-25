@@ -9,6 +9,23 @@ const { palabras } = require("./recetas");
 const TIPOS_MOVIMIENTO = ["consumo", "terminado", "tirado"];
 const MOTIVOS_ELIMINACION = ["terminado", "tirado", "error"];
 
+// Dos palabras equivalentes son iguales o una es la otra seguida de «s»/«es»:
+// así «Tomate»/«Tomates» y «Yogur»/«Yogures» son el mismo alimento, pero
+// «Tomate» no se mezcla con «Tomate cherry» ni «Leche» con «Lechuga».
+function palabrasEquivalentes(a, b) {
+  return a === b
+    || `${a}s` === b
+    || `${a}es` === b
+    || `${b}s` === a
+    || `${b}es` === a;
+}
+
+// Los nombres se agrupan si tienen las mismas palabras, todas equivalentes.
+function nombresEquivalentes(a, b) {
+  return a.length === b.length
+    && a.every((palabra, i) => palabrasEquivalentes(palabra, b[i]));
+}
+
 // "2026-03" de una fecha, con el calendario de España.
 function mesLocal(fecha) {
   return fechaLocal(new Date(fecha)).slice(0, 7);
@@ -30,7 +47,7 @@ function calcularEstadisticas(movimientos, { ahora = new Date(), meses = 6 } = {
     claves.map(mes => [mes, { mes, terminados: 0, tirados: 0, consumos: 0 }])
   );
 
-  const tiradosPorNombre = new Map();
+  const tiradosPorNombre = [];
   let tiradosCaducados = 0;
 
   for (const movimiento of movimientos) {
@@ -45,12 +62,16 @@ function calcularEstadisticas(movimientos, { ahora = new Date(), meses = 6 } = {
       if (movimiento.caducado) tiradosCaducados++;
 
       // Se agrupan nombres equivalentes ("Yogur", "yogures").
-      const clave = palabras(movimiento.nombre)
-        .map(p => p.replace(/(es|s)$/, ""))
-        .join(" ");
-      const actual = tiradosPorNombre.get(clave) || { nombre: movimiento.nombre, veces: 0 };
-      actual.veces++;
-      tiradosPorNombre.set(clave, actual);
+      const normalizado = palabras(movimiento.nombre);
+      const grupo = tiradosPorNombre.find(g =>
+        nombresEquivalentes(g.normalizado, normalizado)
+      );
+
+      if (grupo) {
+        grupo.veces++;
+      } else {
+        tiradosPorNombre.push({ nombre: movimiento.nombre, normalizado, veces: 1 });
+      }
     }
   }
 
@@ -73,7 +94,8 @@ function calcularEstadisticas(movimientos, { ahora = new Date(), meses = 6 } = {
         ? null
         : Math.round((terminados / (terminados + tirados)) * 100)
     },
-    masTirados: [...tiradosPorNombre.values()]
+    masTirados: tiradosPorNombre
+      .map(({ nombre, veces }) => ({ nombre, veces }))
       .sort((a, b) => b.veces - a.veces || a.nombre.localeCompare(b.nombre, "es"))
       .slice(0, 5)
   };
