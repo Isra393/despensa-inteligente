@@ -2,12 +2,10 @@ FROM node:24-slim
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY backend/package*.json ./
 RUN npm ci --omit=dev
 
-COPY index.js ./
-COPY servidor ./servidor
-COPY cliente ./cliente
+COPY backend/ ./
 
 ENV NODE_ENV=production
 
