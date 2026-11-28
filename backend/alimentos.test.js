@@ -5,7 +5,8 @@ const { CadMemoria } = require("./cadMemoria");
 const {
   esFechaValida,
   estadoCaducidad,
-  validarDatosAlimento
+  validarDatosAlimento,
+  tieneExistencias
 } = require("./alimentos");
 
 // 10 de marzo de 2026 a mediodía en España.
@@ -380,4 +381,14 @@ test("Ubicaciones: se puede mover un alimento", async () => {
   );
 
   assert.equal(movido.ubicacion, "congelador");
+});
+
+test("Existencias: solo cuentan las cantidades mayores que 0", () => {
+  assert.equal(tieneExistencias({ cantidad: 1 }), true);
+  assert.equal(tieneExistencias({ cantidad: 0.001 }), true);
+  assert.equal(tieneExistencias({ cantidad: 0 }), false);
+  assert.equal(tieneExistencias({ cantidad: -1 }), false);
+  assert.equal(tieneExistencias({ cantidad: Number.NaN }), false);
+  assert.equal(tieneExistencias({ cantidad: "2" }), false);
+  assert.equal(tieneExistencias({}), false);
 });

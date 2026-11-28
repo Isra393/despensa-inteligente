@@ -1,6 +1,7 @@
 // Sugerencias de recetas según lo que hay en la despensa, dando
 // prioridad a los alimentos que caducan antes.
 const { RECETAS, BASICOS } = require("./recetario");
+const { tieneExistencias } = require("./alimentos");
 
 const MAX_SUGERENCIAS = 6;
 
@@ -45,7 +46,7 @@ function urgencia(alimento) {
 // Los alimentos caducados o agotados no cuentan como disponibles.
 function disponibles(alimentos) {
   return alimentos.filter(alimento =>
-    alimento.cantidad > 0 && alimento.estadoCaducidad !== "caducado"
+    tieneExistencias(alimento) && alimento.estadoCaducidad !== "caducado"
   );
 }
 
