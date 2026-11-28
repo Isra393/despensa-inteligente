@@ -11,6 +11,7 @@ const {
   validarDatosAlimento,
   compararAlimentos,
   bajoMinimo,
+  tieneExistencias,
   CANTIDAD_MAXIMA,
   PASOS_UNIDAD,
   redondear,
@@ -648,7 +649,7 @@ class Sistema {
     return {
       recetas: sugerirRecetas(alimentos),
       caducanPronto: alimentos.filter(a =>
-        a.estadoCaducidad === "proximo" && a.cantidad > 0
+        a.estadoCaducidad === "proximo" && tieneExistencias(a)
       ).length
     };
   }
@@ -827,7 +828,8 @@ class Sistema {
 
   // Devuelve los avisos pendientes de enviar hoy. Solo incluye usuarios
   // activos que los han pedido, que tienen algún alimento caducado o a
-  // punto de caducar y que no han recibido ya el aviso de hoy.
+  // punto de caducar y que no han recibido ya el aviso de hoy. Los
+  // alimentos que están a 0 no se avisan: ya no queda nada en casa.
   async prepararAvisosCaducidad(ahora = new Date()) {
     const hoy = fechaLocal(ahora);
     const usuarios = await this.cad.listar();
@@ -845,6 +847,7 @@ class Sistema {
       }
 
       const alimentos = (await this.cad.listarAlimentos(this.despensaIdDe(usuario)))
+        .filter(tieneExistencias)
         .sort(compararAlimentos)
         .map(alimento => this.alimentoPublico(alimento, ahora))
         .filter(alimento =>

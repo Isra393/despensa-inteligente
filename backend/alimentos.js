@@ -221,6 +221,16 @@ function bajoMinimo(alimento) {
   );
 }
 
+// Un alimento a 0 se queda en la despensa (conserva su mínimo y su
+// código de barras), pero ya no queda nada que pueda caducar o usarse.
+function tieneExistencias(alimento) {
+  return (
+    typeof alimento.cantidad === "number" &&
+    Number.isFinite(alimento.cantidad) &&
+    alimento.cantidad > 0
+  );
+}
+
 // Ordena por caducidad (primero lo que antes caduca) y después por nombre.
 function compararAlimentos(a, b) {
   if (a.fechaCaducidad && b.fechaCaducidad) {
@@ -252,5 +262,6 @@ module.exports = {
   estadoCaducidad,
   validarDatosAlimento,
   compararAlimentos,
-  bajoMinimo
+  bajoMinimo,
+  tieneExistencias
 };

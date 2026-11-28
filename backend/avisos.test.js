@@ -329,3 +329,117 @@ test("Preferencias HTTP: requieren sesión y se guardan", async () => {
     .send({ activo: true, diasAntelacion: 30 })
     .expect(400);
 });
+
+// Ajusta la cantidad con los botones rápidos, como hace la interfaz.
+async function ajustar(sistema, email, alimentoCreado, delta) {
+  return sistema.ajustarCantidad(email, alimentoCreado.id, { delta }, AHORA);
+}
+
+test("Avisos: no incluye los alimentos que se han dejado a 0", async () => {
+  const { sistema } = await preparar();
+  const email = "ana@example.com";
+
+  const leche = await alimento(sistema, email, "Leche", "2026-03-11");
+  await alimento(sistema, email, "Yogur", "2026-03-12");
+  await ajustar(sistema, email, leche, -1);
+
+  await sistema.actualizarPreferenciasAvisos(
+    email,
+    { activo: true, diasAntelacion: 3 }
+  );
+
+  const [aviso] = await sistema.prepararAvisosCaducidad(AHORA);
+
+  assert.deepEqual(aviso.alimentos.map(a => a.nombre), ["Yogur"]);
+});
+
+test("Avisos: tampoco avisa de caducados que ya están a 0", async () => {
+  const { sistema } = await preparar();
+  const email = "ana@example.com";
+
+  const caducado = await alimento(sistema, email, "Caducado", "2026-03-08");
+  await ajustar(sistema, email, caducado, -1);
+
+  await sistema.actualizarPreferenciasAvisos(
+    email,
+    { activo: true, diasAntelacion: 3 }
+  );
+
+  assert.deepEqual(await sistema.prepararAvisosCaducidad(AHORA), []);
+});
+
+test("Avisos: sin existencias no se envía nada y al reponer vuelve a avisar", async () => {
+  const { sistema, cad } = await preparar();
+  const correo = correoSimulado();
+  const email = "ana@example.com";
+
+  const leche = await alimento(sistema, email, "Leche", "2026-03-11");
+  await ajustar(sistema, email, leche, -1);
+
+  await sistema.actualizarPreferenciasAvisos(
+    email,
+    { activo: true, diasAntelacion: 3 }
+  );
+
+  assert.deepEqual(
+    await enviarAvisosCaducidad(sistema, correo, AHORA),
+    { pendientes: 0, enviados: 0, fallidos: 0 }
+  );
+  assert.equal(correo.enviados.length, 0);
+
+  // No se marca como enviado el aviso de hoy, así que si se repone
+  // el alimento el mismo día, el aviso llega.
+  const usuario = await cad.buscarPorEmail(email);
+  assert.equal(usuario.avisoCaducidadEnviadoEl, undefined);
+
+  await ajustar(sistema, email, leche, 1);
+
+  assert.deepEqual(
+    await enviarAvisosCaducidad(sistema, correo, AHORA),
+    { pendientes: 1, enviados: 1, fallidos: 0 }
+  );
+  assert.deepEqual(correo.enviados[0].alimentos.map(a => a.nombre), ["Leche"]);
+});
+
+test("Avisos: una cantidad pequeña con decimales sí cuenta", async () => {
+  const { sistema } = await preparar();
+  const email = "ana@example.com";
+
+  await sistema.crearAlimento(
+    email,
+    { nombre: "Queso", cantidad: 0.05, unidad: "kg", fechaCaducidad: "2026-03-11" },
+    AHORA
+  );
+
+  await sistema.actualizarPreferenciasAvisos(
+    email,
+    { activo: true, diasAntelacion: 3 }
+  );
+
+  const [aviso] = await sistema.prepararAvisosCaducidad(AHORA);
+
+  assert.deepEqual(aviso.alimentos.map(a => a.nombre), ["Queso"]);
+});
+
+test("Avisos: en un hogar, lo que un miembro deja a 0 no se avisa al resto", async () => {
+  const { sistema } = await preparar();
+
+  const { codigo } = await sistema.crearInvitacionHogar("ana@example.com", AHORA);
+  await sistema.unirseHogar("luis@example.com", codigo, AHORA);
+
+  const leche = await alimento(sistema, "ana@example.com", "Leche", "2026-03-11");
+  await alimento(sistema, "ana@example.com", "Yogur", "2026-03-11");
+
+  // Luis se termina la leche de la despensa compartida.
+  await ajustar(sistema, "luis@example.com", leche, -1);
+
+  await sistema.actualizarPreferenciasAvisos(
+    "ana@example.com",
+    { activo: true, diasAntelacion: 3 }
+  );
+
+  const [aviso] = await sistema.prepararAvisosCaducidad(AHORA);
+
+  assert.equal(aviso.email, "ana@example.com");
+  assert.deepEqual(aviso.alimentos.map(a => a.nombre), ["Yogur"]);
+});

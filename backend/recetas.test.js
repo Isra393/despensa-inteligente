@@ -158,3 +158,25 @@ test("API recetas: requiere sesión y devuelve sugerencias", async () => {
     .expect(200);
   assert.deepEqual(respuesta.body.agregados, ["espinacas"]);
 });
+
+test("Recetas: lo que caduca pronto pero está a 0 no cuenta como urgente", async () => {
+  const { sistema } = await preparar();
+  const email = "ana@example.com";
+
+  const leche = await sistema.crearAlimento(
+    email,
+    { nombre: "Leche", cantidad: 1, fechaCaducidad: "2026-03-11" },
+    AHORA
+  );
+  await sistema.crearAlimento(
+    email,
+    { nombre: "Huevos", cantidad: 6, fechaCaducidad: "2026-03-12" },
+    AHORA
+  );
+
+  assert.equal((await sistema.obtenerRecetas(email, AHORA)).caducanPronto, 2);
+
+  await sistema.ajustarCantidad(email, leche.id, { delta: -1 }, AHORA);
+
+  assert.equal((await sistema.obtenerRecetas(email, AHORA)).caducanPronto, 1);
+});
